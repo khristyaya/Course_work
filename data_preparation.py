@@ -1,14 +1,12 @@
 import pandas as pd
 import numpy as np
 
-# Завантаження даних з CSV-файлів
 data_season_1 = pd.read_csv('data_19-20.csv')
 data_season_2 = pd.read_csv('data_20-21.csv')
 data_season_3 = pd.read_csv('data_21-22.csv')
 data_season_4 = pd.read_csv('data_22-23.csv')
 data_season_5 = pd.read_csv('data_23-24.csv')
 
-# Вибір необхідних колонок
 col_needed = [
     "HomeTeam", "AwayTeam", "Date",
     "FTHG", "FTAG", "FTR",
@@ -18,14 +16,12 @@ col_needed = [
     "HY", "AY", "HR", "AR"
 ]
 
-# Вибір потрібних колонок для кожного сезону
 df_2020 = pd.DataFrame(data_season_1[col_needed])
 df_2021 = pd.DataFrame(data_season_2[col_needed])
 df_2022 = pd.DataFrame(data_season_3[col_needed])
 df_2023 = pd.DataFrame(data_season_4[col_needed])
 df_2024 = pd.DataFrame(data_season_5[col_needed])
 
-# Додавання колонки "Season" для кожного сезону
 df_2020["Season"] = "2019-2020"
 df_2021["Season"] = "2020-2021"
 df_2022["Season"] = "2021-2022"
@@ -34,12 +30,9 @@ df_2024["Season"] = "2023-2024"
 
 seasons = ["2019-2020", "2020-2021", "2021-2022", "2022-2023", "2023-2024"]
 
-# Об'єднання усіх сезонів
 df_raw = pd.concat([df_2020, df_2021, df_2022, df_2023, df_2024])
 
-# Перетворення дати на формат datetime
 df_raw.loc[:, 'Date'] = pd.to_datetime(df_raw['Date'], dayfirst=True)
-
 
 def extract_stats(df_raw, n_season=None):
     print(f"Extracting Stats for Season {n_season} ...")
@@ -110,40 +103,33 @@ def extract_stats(df_raw, n_season=None):
             "corner_conceded": df_away["HC"]
         })
 
-        # Об’єднати домашні та виїзні матчі
         df_team = pd.concat([df_home_stats, df_away_stats], ignore_index=True)
         df_team.sort_values(by="date", inplace=True)
         df_team.reset_index(drop=True, inplace=True)
 
         df_team.insert(3, "num_match", range(1, len(df_team) + 1))
 
-        # Кумулятивна різниця голів
         df_team["cu_goal_diff"] = df_team["goal_diff"].cumsum()
 
-        # Очки
         df_team["points"] = np.select(
             [df_team["goal_diff"] > 0, df_team["goal_diff"] == 0],
             [3, 1], default=0
         )
         df_team["cu_points"] = df_team["points"].cumsum()
 
-        # Результат
         df_team["result"] = np.select(
             [df_team["points"] == 3, df_team["points"] == 1],
             ["Win", "Draw"], default="Loss"
         )
 
-        # Очки + різниця голів для позиції
         df_team["points_w_goaldiff"] = (df_team["cu_points"] +
                                         df_team["cu_goal_diff"] / 1000 +
                                         df_team["on_target"] / 1_000_000)
 
-        # Додати до фінального DataFrame
         df_output = pd.concat([df_output, df_team], ignore_index=True)
 
     return df_output
 
-# Витягнути статистику по сезонах
 df_stats_all = pd.DataFrame()
 for season in seasons:
     stats = extract_stats(df_raw, n_season=season)
@@ -164,7 +150,7 @@ def extract_pos(df_season):
         day_df = df_season[df_season["num_match"] == match_day]
         points_table = day_df[["team", "cu_points", "cu_goal_diff"]].copy()
 
-        # Сортировка по очкам і різниці голів
+
         points_table["rank_score"] = points_table["cu_points"] + points_table["cu_goal_diff"] / 1000
         points_table.sort_values(by="rank_score", ascending=False, inplace=True)
         points_table.reset_index(drop=True, inplace=True)
@@ -176,14 +162,12 @@ def extract_pos(df_season):
 
     return pd.concat(league_table, ignore_index=True)
 
-# Отримати позицію для кожного сезону
 df_positions_all = pd.DataFrame()
 for season in seasons:
     df_season_stats = df_stats_all[df_stats_all["season"] == season]
     df_positions = extract_pos(df_season_stats)
     df_positions_all = pd.concat([df_positions_all, df_positions], ignore_index=True)
 
-# З'єднання позиції з основною таблицею
 df_stats_all = df_stats_all.merge(
     df_positions_all[["team", "match_day", "season", "position"]],
     left_on=["team", "num_match", "season"],
@@ -191,13 +175,10 @@ df_stats_all = df_stats_all.merge(
     how="left"
 )
 
-# Видалити колонку match_day
 df_stats_all.drop(columns=["match_day"], inplace=True)
 
-# Перевірка результату
 print(df_stats_all[["team", "num_match", "season", "position"]].head())
 
-# Зберегти оновлений файл з позицією
 df_stats_all.to_csv("full_stats_with_position.csv", index=False)
 print("Файл 'full_stats_with_position.csv' збережено.")
 

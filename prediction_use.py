@@ -6,23 +6,19 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 
-# Завантаження моделі та LabelEncoder
 model = joblib.load('model_final.pkl')
 le_home = joblib.load('le_home.pkl')
 le_away = joblib.load('le_away.pkl')
 le_htr = joblib.load('le_htr.pkl')
 le_ftr = joblib.load('le_ftr.pkl')
 
-# Завантаження CSV
 files = ["data_19-20.csv", "data_20-21.csv", "data_21-22.csv", "data_22-23.csv", "data_23-24.csv"]
 dfs = [pd.read_csv(file) for file in files]
 df_all = pd.concat(dfs)
 df_all['Date'] = pd.to_datetime(df_all['Date'], dayfirst=True, errors='coerce')
 
-# Список команд
 available_teams = df_all['HomeTeam'].unique()
 
-# Функція показу логотипу
 def show_logo(team_name, label):
     path = f"logos/{team_name}.png"
     if os.path.exists(path):
@@ -33,7 +29,6 @@ def show_logo(team_name, label):
     else:
         label.config(image='', text="(Без логотипу)", font=("Arial", 10))
 
-# Прогноз
 def predict_result():
     home_team_name = home_team_combobox.get()
     away_team_name = away_team_combobox.get()
@@ -82,7 +77,6 @@ def predict_result():
 
     result_label.config(text=f"Прогноз: {result}")
 
-# --- Інтерфейс ---
 root = tk.Tk()
 root.title("Прогноз футбольного матчу")
 root.geometry("650x400")
@@ -93,14 +87,12 @@ title_label.pack(pady=20)
 frame = tk.Frame(root)
 frame.pack()
 
-# Лівий та правий блоки
 left_frame = tk.Frame(frame)
 left_frame.grid(row=0, column=0, padx=30)
 
 right_frame = tk.Frame(frame)
 right_frame.grid(row=0, column=1, padx=30)
 
-# Надписи
 tk.Label(left_frame, text="Домашня команда", font=("Arial", 12)).pack()
 home_logo_label = tk.Label(left_frame)
 home_logo_label.pack(pady=5)
@@ -115,11 +107,9 @@ away_team_combobox = ttk.Combobox(right_frame, values=sorted(available_teams), w
 away_team_combobox.pack()
 away_team_combobox.bind("<<ComboboxSelected>>", lambda e: show_logo(away_team_combobox.get(), away_logo_label))
 
-# Кнопка прогнозу
 predict_button = tk.Button(root, text="Отримати прогноз", font=("Arial", 12), command=predict_result, bg="#4CAF50", fg="white", width=25)
 predict_button.pack(pady=20)
 
-# Результат
 result_label = tk.Label(root, text="", font=("Arial", 14), pady=10)
 result_label.pack()
 

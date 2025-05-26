@@ -12,15 +12,13 @@ df_all = pd.read_csv('full_stats_with_position.csv')
 big_four = ["Arsenal", "Chelsea", "Man United", "Man City"]
 df_big_four = df_all[df_all["team"].isin(big_four)]
 
-# Кольори для кожної з команд
 team_colors = {
-    "Arsenal": "#FF0000",      # Червоний
-    "Chelsea": "#0033A0",      # Синій
-    "Man United": "#DA291C",  # Червоний Ман Юнайтед
-    "Man City": "#6cabdd"     # Голубий
+    "Arsenal": "#FF0000",
+    "Chelsea": "#0033A0",
+    "Man United": "#DA291C",
+    "Man City": "#6cabdd"
 }
 
-# Побудова графіка позицій по сезонах
 def plot_position(df, title):
     g = sns.FacetGrid(df, col="season", row="team", hue="team", margin_titles=True,
                       height=3, aspect=2, palette=team_colors)
@@ -32,11 +30,10 @@ def plot_position(df, title):
     g.fig.suptitle(title)
     plt.show()
 
-# Побудова графіку Big Four
 plot_position(df_big_four, "League Position of Big Four since 2005")
 
 # =============================================================================
-# Барплот: Скільки разів команда фінішувала 4-ою
+# Скільки разів команда фінішувала 4-ою
 # =============================================================================
 
 df_4th = df_all[(df_all["num_match"] == 38) & (df_all["position"] == 4)]
@@ -49,7 +46,6 @@ plt.xlabel("Teams")
 plt.ylabel("Number of Seasons")
 plt.title("Number of Times Finishing Fourth")
 
-# Оновлення позначок осі X для цілих чисел
 plt.xticks(range(len(count_4th["team"])), count_4th["team"])
 
 plt.tight_layout()
@@ -62,12 +58,10 @@ plt.show()
 df_city_points = df_all[(df_all["team"] == "Man City") & (df_all["num_match"] == 38)]
 df_city_points = df_city_points.groupby("season", as_index=False).agg(points=("cu_points", "sum"))
 
-# Сортування сезонів
 df_city_points["season"] = pd.Categorical(df_city_points["season"], ordered=True,
                                           categories=sorted(df_city_points["season"].unique()))
 df_city_points = df_city_points.sort_values("season")
 
-# Побудова графіку
 plt.figure(figsize=(10, 6))
 plt.scatter(df_city_points["season"], df_city_points["points"], color='blue', s=100, label='Points')
 
@@ -91,7 +85,6 @@ plt.show()
 df_arsenal = df_all[(df_all["team"] == "Arsenal") & (df_all["season"] == "2023-2024")]
 df_mancity = df_all[(df_all["team"] == "Man City") & (df_all["season"] == "2023-2024")]
 
-# Функція порівняння: Позиція/Очки з можливістю інверсії осі Y
 def plot_comparison(df1, df2, label1, label2, title, y_label, invert_y=False):
     plt.figure(figsize=(10, 6))
     plt.plot(df1["num_match"], df1["position"], label=label1, color='red', linestyle='-', marker='o')
@@ -106,11 +99,9 @@ def plot_comparison(df1, df2, label1, label2, title, y_label, invert_y=False):
     plt.tight_layout()
     plt.show()
 
-# Графік позицій
 plot_comparison(df_arsenal, df_mancity, "Arsenal", "Man City",
                 "Arsenal vs Man City (League Position)", "League Position", invert_y=True)
 
-# Окрема функція для очок
 def plot_points_comparison(df1, df2, label1, label2, title):
     plt.figure(figsize=(10, 6))
     plt.plot(df1["num_match"], df1["cu_points"], label=label1, color='red', linestyle='-', marker='o')
@@ -123,7 +114,6 @@ def plot_points_comparison(df1, df2, label1, label2, title):
     plt.tight_layout()
     plt.show()
 
-# Графік очок
 plot_points_comparison(df_arsenal, df_mancity, "Arsenal", "Man City","Arsenal vs Man City (Total Points)")
 
 # =============================================================================
@@ -133,7 +123,6 @@ plot_points_comparison(df_arsenal, df_mancity, "Arsenal", "Man City","Arsenal vs
 big_four = ["Arsenal", "Chelsea", "Man United", "Man City"]
 df_big_four = df_all[df_all["team"].isin(big_four)]
 
-# Кольори команд
 team_colors = {
     "Arsenal": "#FF0000",
     "Chelsea": "#0033A0",
@@ -141,10 +130,8 @@ team_colors = {
     "Man City": "#6cabdd"
 }
 
-# Отримати список сезонів
 seasons = sorted(df_big_four["season"].unique())
 
-# Побудова графіків — один графік на сезон
 for season in seasons:
     plt.figure(figsize=(12, 6))
     for team in big_four:
@@ -155,7 +142,7 @@ for season in seasons:
                  linewidth=2,
                  marker='o',
                  markersize=4)
-        # Додати маркер кінцевої позиції
+
         end_pos = df_temp[df_temp["num_match"] == df_temp["num_match"].max()]
         plt.text(end_pos["num_match"].values[0] + 0.5,
                  end_pos["position"].values[0],
@@ -181,7 +168,6 @@ for season in seasons:
 
 avg_positions_true = df_all.groupby(["season", "team"]).agg(avg_pos=("position", "mean")).reset_index()
 
-# Pivot table для heatmap
 pivot_avg_pos_true = avg_positions_true.pivot(index="team", columns="season", values="avg_pos")
 
 plt.figure(figsize=(14, 8))
@@ -193,18 +179,15 @@ plt.tight_layout()
 plt.show()
 
 # =============================================================================
-# Фільтрація даних для сезону 2023/24 — середня кількість ударів по воротах
+# Середня кількість ударів по воротах
 # =============================================================================
 
 df_2023_24 = df_all[df_all["season"] == "2023-2024"]
 
-# Обчислення середньої кількості ударів по воротах для кожної команди
 avg_shots_per_team = df_2023_24.groupby("team")["shot"].mean().reset_index()
 
-# Сортування команд за середньою кількістю ударів
 avg_shots_per_team_sorted = avg_shots_per_team.sort_values(by="shot", ascending=False)
 
-# Побудова графіка
 plt.figure(figsize=(12, 6))
 sns.barplot(data=avg_shots_per_team_sorted, x="team", y="shot", palette="viridis")
 plt.title("Average Shots per Team in 2023-2024 Season")

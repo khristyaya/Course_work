@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Дані
 metrics = [
     'Володіння м\'ячем', 'Удари', 'Удари в площину', 'xG', 'Передачі',
     'Точність передач', 'Фоли', 'Офсайди', 'Кутові'
@@ -13,7 +12,6 @@ team2_values = [66, 10, 1, 1.14, 726, 89, 9, 0, 3]
 fig, ax = plt.subplots(figsize=(14, 7))
 y_pos = np.arange(len(metrics))
 
-# Масштабування окремо для кожного показника
 team1_scaled = []
 team2_scaled = []
 for t1, t2 in zip(team1_values, team2_values):
@@ -21,25 +19,22 @@ for t1, t2 in zip(team1_values, team2_values):
     team1_scaled.append(t1 / local_max * 100)
     team2_scaled.append(t2 / local_max * 100)
 
-# Бар-графіки
 bars1 = ax.barh(y_pos, team1_scaled, color='orange', edgecolor='black', height=0.4, align='center')
 bars2 = ax.barh(y_pos, [-v for v in team2_scaled], color='blue', edgecolor='black', height=0.4, align='center')
 
-# Значення + назви над барами
 for i in range(len(metrics)):
-    # Значення на кінцях
     ax.text(team1_scaled[i] + 2, y_pos[i], f'{team1_values[i]}', va='center', ha='left', fontsize=10, color='black', fontweight='bold')
     ax.text(-team2_scaled[i] - 2, y_pos[i], f'{team2_values[i]}', va='center', ha='right', fontsize=10, color='black', fontweight='bold')
-    # Назва показника над центром
+
     ax.text(0, y_pos[i] + 0.25, metrics[i], va='bottom', ha='center', fontsize=11, fontweight='bold')
 
-# Оформлення
+
 ax.set_yticks([])
 ax.set_xticks([])
 ax.set_xlim(-110, 110)
 ax.set_frame_on(False)
 
-# Легенда + картки
+
 ax.legend(loc='upper right', fontsize=11)
 team1_cards = "1/0"
 team2_cards = "1/0"
